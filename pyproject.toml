@@ -1,6 +1,6 @@
 [project]
 name = "stimfileapi"
-version = "0.1.0"
+version = "0.1.1"
 description = "StealthIM FileAPI Upload/Download Command Toolkit"
 authors = [{ name = "cxykevin", email = "cxykevin@yeah.net" }]
 license = { text = "GPLv2" }
