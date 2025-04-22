@@ -1,0 +1,30 @@
+[project]
+name = "stimfileapi"
+version = "0.1.0"
+description = "StealthIM FileAPI Upload/Download Command Toolkit"
+authors = [{ name = "cxykevin", email = "cxykevin@yeah.net" }]
+license = { text = "GPLv2" }
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "grpclib (>=0.4.7,<0.5.0)",
+    "protobuf (>=6.30.2,<7.0.0)",
+    "typer (>=0.15.2,<0.16.0)",
+    "blake3 (>=1.0.4,<2.0.0)",
+    "aiofiles (>=24.1.0,<25.0.0)",
+]
+
+
+[tool.poetry]
+packages = [{ include = "stimfileapi", from = "tool" }]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+grpcio-tools = "^1.71.0"
+mypy-protobuf = "^3.6.0"
+
+[tool.poetry.scripts]
+stimfileapi = "stimfileapi:app"

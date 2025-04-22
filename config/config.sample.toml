@@ -1,0 +1,41 @@
+[server]
+host = "127.0.0.1"
+port = 50053
+log = false
+
+[dbgateway]
+host = "127.0.0.1"
+port = 50051
+conn_num = 5
+sql_timeout = 5000 # 单位：ms
+
+[[filestorage]]
+host = "127.0.0.1"
+port = 50052
+id = 0
+
+# 多个存储单元配置
+#
+# [[filestorage]]
+# host = "192.168.xx.xx"
+# port = 50052
+# id = 1
+#
+# 请保证 ID 唯一，在迁移时请使用相同的 ID
+
+[storage]
+timeout = 1000   # 单位：ms
+check_time = 60  # 单位：s
+blocksize = 2048 # 单位：KB
+# 不建议更改，不超过 2048
+
+# === 迁移存储指南 ===
+#
+# 1. 在 filestorage 节点中设置存储单元可用块为 0
+# 2. 重载节点配置并等待 API 节点同步 Usage 数据，确认无流量
+# 3. 迁移文件到新的机器
+# 4. 在 API 节点中将原来的存储单元指向新的机器并重启，请勿更改 ID
+# 5. 确保流量完全转移到新的单元后可关闭原单元
+#
+# 如果需要合并两个单元，那么请编写两个节点配置，并保证除 ID 外其它配置均相同
+# ID 分别为两个节点原来的 ID

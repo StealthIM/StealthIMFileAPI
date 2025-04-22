@@ -1,0 +1,11 @@
+StealthIM.*/
+__pycache__/
+*_pb2.py*
+*_grpc.py
+test/storage_nodes.dat
+test/test_file.txt
+__debug*
+bin
+config.toml
+dist
+poetry.lock
