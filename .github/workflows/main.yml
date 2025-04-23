@@ -1,8 +1,8 @@
-name: Upload StealthIMDB to GitHub Packages
+name: Upload Image
 
 on:
   workflow_run:
-    workflows: ["Release"]  # 替换为生成 StealthIMDB.docker.zst 的 workflow 名称
+    workflows: ["Release"]  # 替换为生成 StealthIMFileAPI.docker.zst 的 workflow 名称
     types:
       - completed
 
@@ -14,19 +14,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Download StealthIMDB.docker.zst
+    - name: Download File
       uses: actions/download-artifact@v3
       with:
-        name: StealthIMDB.docker.zst
+        name: StealthIMFileAPI.docker.zst
 
-    - name: Unpack StealthIMDB.docker.zst
+    - name: Unpack File
       run: |
         sudo apt-get update
         sudo apt-get install -y zstd
-        zstd -d StealthIMDB.docker.zst
+        zstd -d StealthIMFileAPI.docker.zst
 
     - name: Load Docker image
-      run: docker load -i StealthIMDB.docker.tar
+      run: docker load -i StealthIMFileAPI.docker.tar
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v2
