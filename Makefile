@@ -42,18 +42,18 @@ build: ./bin/$(DEFAULT_BUILD_FILENAME)
 build_win: ./bin/StealthIMFileAPI.exe
 build_linux: ./bin/StealthIMFileAPI
 
-# docker_run:
-# 	docker-compose up
+docker_run:
+	docker-compose up
 
-# ./bin/StealthIMFileAPI.docker.zst: $(GO_FILES) proto
-# 	docker-compose build
-# 	docker save stealthimfileapi-app > ./bin/StealthIMFileAPI.docker
-# 	zstd ./bin/StealthIMFileAPI.docker -19
-# 	@rm ./bin/StealthIMFileAPI.docker
+./bin/StealthIMFileAPI.docker.zst: $(GO_FILES) proto
+	docker-compose build
+	docker save stealthimfileapi-app > ./bin/StealthIMFileAPI.docker
+	zstd ./bin/StealthIMFileAPI.docker -19
+	@rm ./bin/StealthIMFileAPI.docker
 
-# build_docker: ./bin/StealthIMFileAPI.docker.zst
+build_docker: ./bin/StealthIMFileAPI.docker.zst
 
-# release: build_win build_linux build_docker
+release: build_win build_linux build_docker
 
 clean:
 	@rm -rf ./StealthIM.FileStorage
