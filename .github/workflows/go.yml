@@ -11,6 +11,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
 
     steps:
     - name: Checkout code
@@ -92,6 +94,7 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Tag and push Docker image
       run: |
