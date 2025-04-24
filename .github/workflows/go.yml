@@ -11,6 +11,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
 
     steps:
     - name: Checkout code
@@ -67,3 +69,34 @@ jobs:
       with:
         name: StealthIMFileAPI.docker.zst
         path: ./bin/StealthIMFileAPI.docker.zst
+        
+  upload-package:
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+    - name: Download File
+      uses: actions/download-artifact@v4
+      with:
+        name: StealthIMFileAPI.docker.zst
+
+    - name: Unpack File
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zstd
+        zstd -d StealthIMFileAPI.docker.zst
+
+    - name: Load Docker image
+      run: docker load -i StealthIMFileAPI.docker
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Tag and push Docker image
+      run: |
+        docker tag $(docker images -q | head -n 1) ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')/stealthimfileapi-app:latest
+        docker push ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')/stealthimfileapi-app:latest
