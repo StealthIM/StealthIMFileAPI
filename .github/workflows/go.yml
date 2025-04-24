@@ -85,7 +85,7 @@ jobs:
         zstd -d StealthIMFileAPI.docker.zst
 
     - name: Load Docker image
-      run: docker load -i StealthIMFileAPI.docker.tar
+      run: docker load -i StealthIMFileAPI.docker
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
