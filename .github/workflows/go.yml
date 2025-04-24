@@ -98,5 +98,5 @@ jobs:
 
     - name: Tag and push Docker image
       run: |
-        docker tag $(docker images -q | head -n 1) ghcr.io/stealthim/stealthimfileapi-app:latest
-        docker push ghcr.io/stealthim/stealthimfileapi-app:latest
+        docker tag $(docker images -q | head -n 1) ghcr.io/${{ github.repository_owner | lower }}/${{ github.event.repository.name | lower }}/stealthimfileapi-app:latest
+        docker push ghcr.io/${{ github.repository_owner | lower }}/${{ github.event.repository.name | lower }}/stealthimfileapi-app:latest
