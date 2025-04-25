@@ -17,6 +17,14 @@ dependencies = [
 
 [tool.poetry]
 packages = [{ include = "stimfileapi", from = "tool" }]
+include = [
+    { path = "tool/stimfileapi/proto/*.py", format = [
+        "sdist",
+        "wheel",
+    ] },
+]
+exclude = ["__pycache__/"] # 防止自动从 VCS 提取配置
+# https://python-poetry.org/docs/pyproject#exclude-and-include
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
