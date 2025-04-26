@@ -48,6 +48,7 @@ jobs:
           
       - name: Build
         run: |
+          export PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
           poetry env activate
           make proto_t
           poetry build
