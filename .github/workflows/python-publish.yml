@@ -34,10 +34,11 @@ jobs:
 
       - name: Install deps
         run: |
+          poetry lock
+          poetry install
           poetry env activate
           pip install grpcio==1.72.0rc1
           pip install grpcio-tools==1.72.0rc1 # 解决版本问题
-          poetry install
           
       - name: Build
         run: |
