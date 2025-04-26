@@ -34,8 +34,8 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install grpcio==1.72.0rc1
-          pip install grpcio-tools==1.72.0rc1 # 解决版本问题
+          sudo pip install grpcio==1.72.0rc1
+          sudo pip install grpcio-tools==1.72.0rc1 # 解决版本问题
           poetry lock
           poetry install --with dev
           echo "Install grpcio"
