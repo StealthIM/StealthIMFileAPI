@@ -31,7 +31,8 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
-grpcio-tools = "^1.71.0"
+# grpcio = "^1.72.0rc1" # 阴间依赖版本问题
+# grpcio-tools = "^1.72.0rc1"
 mypy-protobuf = "^3.6.0"
 
 [tool.poetry.scripts]
