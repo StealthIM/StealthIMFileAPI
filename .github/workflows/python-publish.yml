@@ -34,8 +34,10 @@ jobs:
 
       - name: Install deps
         run: |
-          sudo pip install grpcio==1.72.0rc1
-          sudo pip install grpcio-tools==1.72.0rc1 # 解决版本问题
+          pip install grpcio==1.72.0rc1
+          pip install grpcio-tools==1.72.0rc1 # 解决版本问题
+          ls ~/.local/bin
+          /mnt/xdata/user/cxykevin/.local/bin/protoc-gen-grpclib_python
           poetry lock
           poetry install --with dev
           echo "Install grpcio"
@@ -46,6 +48,7 @@ jobs:
       - name: Build
         run: |
           poetry env activate
+          alias protoc-gen-grpclib_python='~/.local/bin/protoc-gen-grpclib_python'
           make proto_t
           poetry build
 
