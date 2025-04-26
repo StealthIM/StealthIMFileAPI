@@ -29,6 +29,7 @@ jobs:
 
       - name: Prepare env
         run: |
+          python -m site
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
 
@@ -36,8 +37,6 @@ jobs:
         run: |
           pip install grpcio==1.72.0rc1
           pip install grpcio-tools==1.72.0rc1 # 解决版本问题
-          ls ~/.local/bin
-          /mnt/xdata/user/cxykevin/.local/bin/protoc-gen-grpclib_python
           poetry lock
           poetry install --with dev
           echo "Install grpcio"
