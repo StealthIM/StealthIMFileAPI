@@ -30,14 +30,13 @@ jobs:
       - name: Prepare env
         run: |
           mkdir ~/.local
-          PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin/"
+          PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
 
       - name: Install deps
         run: |
-          ls /opt/hostedtoolcache/Python/3.13.2/x64/bin/
-          ls ~/.local
+          PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
           pip install grpcio==1.72.0rc1
           pip install grpcio-tools==1.72.0rc1 # 解决版本问题
           poetry lock
