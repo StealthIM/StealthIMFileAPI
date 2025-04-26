@@ -36,6 +36,7 @@ jobs:
         run: |
           poetry lock
           poetry install
+          echo "Install grpcio"
           poetry env activate
           pip install grpcio==1.72.0rc1
           pip install grpcio-tools==1.72.0rc1 # 解决版本问题
