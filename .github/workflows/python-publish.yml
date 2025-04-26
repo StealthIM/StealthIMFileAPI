@@ -29,7 +29,8 @@ jobs:
 
       - name: Prepare env
         run: |
-          python -m site
+          mkdir ~/.local
+          PATH="$PATH:~/.local/bin"
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
 
@@ -47,7 +48,6 @@ jobs:
       - name: Build
         run: |
           poetry env activate
-          alias protoc-gen-grpclib_python='~/.local/bin/protoc-gen-grpclib_python'
           make proto_t
           poetry build
 
