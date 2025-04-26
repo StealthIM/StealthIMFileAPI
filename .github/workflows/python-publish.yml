@@ -31,8 +31,9 @@ jobs:
         run: |
           # NOTE: put your own distribution build steps here.
           python -m pip install poetry
+          python -m pip install grpcio-tools mypy-protobuf
           poetry self add poetry-dynamic-versioning
-          poetry install --with dev
+          poetry install
           poetry env activate
           make debug_t
 
