@@ -30,7 +30,7 @@ jobs:
       - name: Prepare env
         run: |
           mkdir ~/.local
-          PATH="$PATH:~/.local/bin"
+          PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin/"
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
 
