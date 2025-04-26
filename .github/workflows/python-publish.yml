@@ -100,4 +100,4 @@ jobs:
       - name: Publish release distributions to PyPI
         run: |
           pip install twine
-          twine upload -p ${{ secrets.PYPITOKEN }} dist/*
+          twine upload -p "${{ secrets.PYPITOKEN }}" ./dist/*
