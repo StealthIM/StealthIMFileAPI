@@ -32,7 +32,7 @@ jobs:
           # NOTE: put your own distribution build steps here.
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
-          poetry install --dev
+          poetry install --with dev
           poetry env activate
           make debug_t
 
