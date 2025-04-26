@@ -37,8 +37,8 @@ jobs:
       - name: Install deps
         run: |
           export PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
-          pip install grpcio==1.72.0rc1
-          pip install grpcio-tools==1.72.0rc1 # 解决版本问题
+          sudo pip install grpcio==1.72.0rc1
+          sudo pip install grpcio-tools==1.72.0rc1 # 解决版本问题
           poetry lock
           poetry install --with dev
           echo "Install grpcio"
@@ -49,6 +49,7 @@ jobs:
       - name: Build
         run: |
           export PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
+          ls /opt/hostedtoolcache/Python/3.13.2/x64/bin
           poetry env activate
           make proto_t
           poetry build
