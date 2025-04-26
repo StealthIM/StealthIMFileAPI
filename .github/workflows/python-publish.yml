@@ -87,6 +87,10 @@ jobs:
       # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
 
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.2"
+
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
         with:
@@ -94,6 +98,6 @@ jobs:
           path: dist/
 
       - name: Publish release distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+        run: |
+          pip install twine
+          twine upload -p ${{ serects.PYPITOKEN }} dist/*
