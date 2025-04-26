@@ -44,7 +44,7 @@ jobs:
       - name: Build
         run: |
           poetry env activate
-          make debug_t
+          make proto_t
           poetry build
 
       - name: Upload distributions
