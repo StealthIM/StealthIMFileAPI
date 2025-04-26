@@ -49,6 +49,8 @@ jobs:
       - name: Build
         run: |
           export PATH="$PATH:~/.local/bin:/opt/hostedtoolcache/Python/3.13.2/x64/bin"
+          echo -e '#!/usr/bin/python\nfrom grpclib.plugin.main import main\nimport sys\nsys.exit(main())' > /opt/hostedtoolcache/Python/3.13.2/x64/bin/protoc-gen-grpclib_python
+          chmod +x /opt/hostedtoolcache/Python/3.13.2/x64/bin/protoc-gen-grpclib_python
           ls /opt/hostedtoolcache/Python/3.13.2/x64/bin
           poetry env activate
           make proto_t
