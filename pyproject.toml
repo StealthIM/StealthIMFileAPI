@@ -37,3 +37,6 @@ mypy-protobuf = "^3.6.0"
 
 [tool.poetry.scripts]
 stimfileapi = "stimfileapi:app"
+
+[tool.poetry-dynamic-versioning]
+enable = true
