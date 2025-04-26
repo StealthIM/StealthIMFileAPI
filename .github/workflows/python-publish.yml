@@ -29,14 +29,13 @@ jobs:
 
       - name: Prepare env
         run: |
-          apt install python3-grpcio-tools python3-mypy-protobuf -y
+          sudo apt-get install python3-grpcio-tools python3-mypy-protobuf -y
           python -m pip install poetry
           poetry self add poetry-dynamic-versioning
 
       - name: Install deps
         run: |
           poetry install
-          poetry add mypy-protobuf
           
       - name: Build
         run: |
