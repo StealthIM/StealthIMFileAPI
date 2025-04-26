@@ -27,15 +27,21 @@ jobs:
         with:
           python-version: "3.13.2"
 
-      - name: Build release distributions
+      - name: Prepare env
         run: |
-          # NOTE: put your own distribution build steps here.
           python -m pip install poetry
           python -m pip install grpcio-tools mypy-protobuf
           poetry self add poetry-dynamic-versioning
+
+      - name: Install deps
+        run: |
           poetry install
+          
+      - name: Build
+        run: |
           poetry env activate
           make debug_t
+          poetry build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
