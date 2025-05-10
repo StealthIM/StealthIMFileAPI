@@ -14,7 +14,7 @@ import (
 )
 
 var conns []*grpc.ClientConn
-var mainlock sync.Mutex
+var mainlock sync.RWMutex
 
 func createConn(connID int) {
 	log.Printf("[DB]Connect %d", connID+1)
@@ -42,19 +42,19 @@ func checkAlive(connID int) {
 		if len(conns) <= connID {
 			return
 		}
-		mainlock.Lock()
+		mainlock.RLock()
 		if conns[connID] != nil {
 			cli := pb.NewStealthIMDBGatewayClient(conns[connID])
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			_, err := cli.Ping(ctx, &pb.PingRequest{})
 			cancel()
 			if err == nil {
-				mainlock.Unlock()
+				mainlock.RUnlock()
 				continue
 			}
 		}
 		createConn(connID)
-		mainlock.Unlock()
+		mainlock.RUnlock()
 		time.Sleep(5 * time.Second)
 	}
 }

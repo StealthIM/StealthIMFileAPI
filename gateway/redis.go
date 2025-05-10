@@ -9,8 +9,8 @@ import (
 
 // ExecRedisGet 运行 Redis 查询
 func ExecRedisGet(req *pb.RedisGetStringRequest) (*pb.RedisGetStringResponse, error) {
-	mainlock.Lock()
-	defer mainlock.Unlock()
+	mainlock.RLock()
+	defer mainlock.RUnlock()
 	conn, err := chooseConn()
 	if err != nil {
 		return nil, err
@@ -24,8 +24,8 @@ func ExecRedisGet(req *pb.RedisGetStringRequest) (*pb.RedisGetStringResponse, er
 
 // ExecRedisSet 运行 Redis 写入
 func ExecRedisSet(req *pb.RedisSetStringRequest) (*pb.RedisSetResponse, error) {
-	mainlock.Lock()
-	defer mainlock.Unlock()
+	mainlock.RLock()
+	defer mainlock.RUnlock()
 	conn, err := chooseConn()
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func ExecRedisSet(req *pb.RedisSetStringRequest) (*pb.RedisSetResponse, error) {
 
 // ExecRedisBGet 运行 Redis 二进制查询
 func ExecRedisBGet(req *pb.RedisGetBytesRequest) (*pb.RedisGetBytesResponse, error) {
-	mainlock.Lock()
-	defer mainlock.Unlock()
+	mainlock.RLock()
+	defer mainlock.RUnlock()
 	conn, err := chooseConn()
 	if err != nil {
 		return nil, err
@@ -54,8 +54,8 @@ func ExecRedisBGet(req *pb.RedisGetBytesRequest) (*pb.RedisGetBytesResponse, err
 
 // ExecRedisBSet 运行 Redis 二进制写入
 func ExecRedisBSet(req *pb.RedisSetBytesRequest) (*pb.RedisSetResponse, error) {
-	mainlock.Lock()
-	defer mainlock.Unlock()
+	mainlock.RLock()
+	defer mainlock.RUnlock()
 	conn, err := chooseConn()
 	if err != nil {
 		return nil, err
@@ -69,8 +69,8 @@ func ExecRedisBSet(req *pb.RedisSetBytesRequest) (*pb.RedisSetResponse, error) {
 
 // ExecRedisDel 运行 Redis 删除
 func ExecRedisDel(req *pb.RedisDelRequest) (*pb.RedisDelResponse, error) {
-	mainlock.Lock()
-	defer mainlock.Unlock()
+	mainlock.RLock()
+	defer mainlock.RUnlock()
 	conn, err := chooseConn()
 	if err != nil {
 		return nil, err
