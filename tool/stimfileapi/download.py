@@ -6,6 +6,7 @@ from rich.progress import Progress
 import os
 from rich import print
 
+SUCCESS = 800
 
 def merge_val(data: list[int]) -> list[tuple[int, int]]:
     result = []
@@ -37,7 +38,7 @@ async def download(server: str, port: int, file_path: str, block_size: int = 2*1
             async with Channel(server, port) as channel:
                 stub = fileapi_grpc.StealthIMFileAPIStub(channel)
                 fileinfo = await stub.GetFileInfo(fileapi_pb2.GetFileInfoRequest(hash=fhash))
-                if (fileinfo.result.code != 0):
+                if (fileinfo.result.code != SUCCESS):
                     raise Exception("Download Fault: "+fileinfo.result.msg)
                 print(f"[blue]File size: [bold]{fileinfo.size}[/bold][/blue]")
                 filesize = fileinfo.size
@@ -78,7 +79,7 @@ async def download(server: str, port: int, file_path: str, block_size: int = 2*1
                                 finishcnt += 1
                                 progress.update(task, completed=finishcnt)
                             elif (chunk.WhichOneof('data') == "result"):
-                                if (chunk.result.code != 0):
+                                if (chunk.result.code != SUCCESS):
                                     raise Exception(
                                         "Download Fault: "+chunk.result.msg)
                                 else:

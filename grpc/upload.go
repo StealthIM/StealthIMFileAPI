@@ -4,6 +4,7 @@ import (
 	pb_gateway "StealthIMFileAPI/StealthIM.DBGateway"
 	pb "StealthIMFileAPI/StealthIM.FileAPI"
 	"StealthIMFileAPI/config"
+	"StealthIMFileAPI/errorcode"
 	"StealthIMFileAPI/gateway"
 	"StealthIMFileAPI/storage"
 	"encoding/hex"
@@ -35,7 +36,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		filemeta = metainfo
 	} else {
 		// 空元数据
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 1, Msg: "metadata is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataEmpty, Msg: "metadata is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 			return err
 		}
 		handleStream(stream) // 等待流结束
@@ -43,19 +44,19 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 	}
 
 	// 发送元数据反馈
-	if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+	if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 		return err
 	}
 
 	if len(filemeta.Hash) != 64 {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 12, Msg: "hash is broken"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPHashBroken, Msg: "hash is broken"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 			return err
 		}
 		handleStream(stream) // 等待流结束
 		return nil
 	}
 	if filemeta.Totalsize == 0 {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 13, Msg: "file is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPFileEmpty, Msg: "file is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 			return err
 		}
 		handleStream(stream) // 等待流结束
@@ -64,8 +65,8 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 
 	// 检查hash
 	gret, gerr := gateway.ExecRedisBGet(&pb_gateway.RedisGetBytesRequest{Key: "files:filehash:" + filemeta.Hash}) // 查缓存
-	if gerr != nil && gret != nil && gret.Result != nil && gret.Result.Code == 0 {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: filemeta.Hash}}}); err != nil {
+	if gerr != nil && gret != nil && gret.Result != nil && gret.Result.Code == errorcode.Success {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: filemeta.Hash}}}); err != nil {
 			return errors.New("Return error")
 		}
 
@@ -89,7 +90,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		return errsql
 	}
 	if len(ret.Data) > 0 {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: filemeta.Hash}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: filemeta.Hash}}}); err != nil {
 			return errors.New("Return error")
 		}
 
@@ -152,7 +153,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 			}
 			if metainfo := in.GetMetadata(); metainfo != nil {
 				// 处理元数据重复
-				if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 3, Msg: "metadata is repeated"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+				if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "metadata is repeated"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 					closeChannel <- err
 					return
 				}
@@ -161,7 +162,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 			} else if blockinfo := in.GetFile(); blockinfo != nil {
 				// 文件块超出范围
 				if blockinfo.Blockid < 0 || blockinfo.Blockid >= blocknum {
-					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 4, Msg: "blocknum out of range"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "blocknum out of range"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 						closeChannel <- err
 						return
 					}
@@ -170,7 +171,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 				}
 				// 文件块重复
 				if blocksInfo[blockinfo.Blockid] != -1 {
-					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 5, Msg: "blockid repeated"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPUploadBlockRepeat, Msg: "blockid repeated"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 						closeChannel <- err
 						return
 					}
@@ -179,7 +180,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 				}
 				// 完整文件块大小错误
 				if blockinfo.Blockid < blocknum-1 && len(blockinfo.File) != blocksize*1024 {
-					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 6, Msg: "block size wrong"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "block size wrong"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 						closeChannel <- err
 						return
 					}
@@ -187,7 +188,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 					return
 				} else if blockinfo.Blockid == blocknum-1 && len(blockinfo.File) != lastBlockSize {
 					// 尾文件块大小错误
-					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 7, Msg: "block size wrong"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+					if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "block size wrong"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 
 						closeChannel <- err
 						return
@@ -204,7 +205,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 						blockDataTmp = &blockinfo.File
 
 						// 发送反馈
-						if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: 0}}}); err2 != nil {
+						if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: 0}}}); err2 != nil {
 							return
 						}
 						closeChannel <- nil
@@ -216,7 +217,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 						return
 					}
 					if err != nil { // 存储失败
-						if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 9, Msg: err.Error()}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: blockinfo.Blockid}}}); err2 != nil {
+						if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.ServerInternalComponentError, Msg: err.Error()}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: blockinfo.Blockid}}}); err2 != nil {
 							closeChannel <- errors.New("send error")
 							return
 						}
@@ -229,7 +230,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 					blocksInfo[blockinfo.Blockid] = blockid
 					successBlockCnt++
 					// 发送反馈
-					if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: blockinfo.Blockid}}}); err2 != nil {
+					if err2 := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Block{Block: &pb.Upload_BlockResponse{Blockid: blockinfo.Blockid}}}); err2 != nil {
 						return
 					}
 					if successBlockCnt == blocknum {
@@ -239,7 +240,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 				}
 				go upload(blockinfo)
 			} else { // 错误的block
-				if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 8, Msg: "blockinfo is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+				if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "blockinfo is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
 					closeChannel <- err
 					return
 				}
@@ -267,7 +268,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		blobdata, berr = proto.Marshal(&pb.BlockStorage{Filename: fileID, Filesize: filemeta.Totalsize, Type: &pb.BlockStorage_Data{Data: *blockDataTmp}})
 	}
 	if berr != nil {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 11, Msg: "save blockstorage fault"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPSaveBlockStorageFault, Msg: "save blockstorage fault"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
 			return errors.New("save blockstorage fault")
 		}
 		return berr
@@ -306,15 +307,15 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 
 	// 检查hash
 	if filemeta.Hash != "" && filemeta.Hash != fileFullHash {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 11, Msg: "hash not match"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPHashNotMatch, Msg: "hash not match"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
 			return errors.New("hash not match")
 		}
 		handleStream(stream) // 等待流
 		return nil
 	}
 
-	if err2 != nil || ret.Result.Code != 0 {
-		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 10, Msg: "upload to database fault"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
+	if err2 != nil || ret.Result.Code != errorcode.Success {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPUploadToDatabaseFault, Msg: "upload to database fault"}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{}}}); err != nil {
 			return errors.New("upload to database fault")
 		}
 		handleStream(stream) // 等待流
@@ -322,7 +323,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 	}
 
 	// 返回
-	if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: 0, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: fileFullHash}}}); err != nil {
+	if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: fileFullHash}}}); err != nil {
 		return errors.New("Return error")
 	}
 

@@ -4,6 +4,7 @@ import (
 	pb_gateway "StealthIMFileAPI/StealthIM.DBGateway"
 	pb "StealthIMFileAPI/StealthIM.FileAPI"
 	"StealthIMFileAPI/config"
+	"StealthIMFileAPI/errorcode"
 	"StealthIMFileAPI/gateway"
 	"StealthIMFileAPI/storage"
 	"context"
@@ -21,7 +22,7 @@ func (s *server) Download(req *pb.DownloadRequest, stream pb.StealthIMFileAPI_Do
 	for { // 流程控制用，只执行一次
 		// 检查hash
 		gret, gerr := gateway.ExecRedisBGet(&pb_gateway.RedisGetBytesRequest{Key: "files:filehash:" + req.Hash}) // 查缓存
-		if gerr != nil && gret.Result.Code == 0 && len(gret.Value) > 0 {
+		if gerr != nil && gret.Result.Code == errorcode.Success && len(gret.Value) > 0 {
 			hashByte = gret.Value
 			break
 		}
@@ -58,10 +59,12 @@ func (s *server) Download(req *pb.DownloadRequest, stream pb.StealthIMFileAPI_Do
 			}
 			break
 		}
-		break
+		if true {
+			break
+		}
 	}
 	if len(hashByte) == 0 {
-		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: 1, Msg: "file not found"}}}); err != nil {
+		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: errorcode.FSAPFileNotFound, Msg: "file not found"}}}); err != nil {
 			return errors.New("file not found")
 		}
 		time.Sleep(500 * time.Millisecond)
@@ -70,7 +73,7 @@ func (s *server) Download(req *pb.DownloadRequest, stream pb.StealthIMFileAPI_Do
 	filemeta := &pb.BlockStorage{}
 	unmasherr := proto.Unmarshal(hashByte, filemeta)
 	if unmasherr != nil {
-		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: 2, Msg: "server unmarshal error"}}}); err != nil {
+		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: errorcode.ServerInternalComponentError, Msg: "server unmarshal error"}}}); err != nil {
 			return errors.New("server unmarshal error")
 		}
 		time.Sleep(500 * time.Millisecond)
@@ -82,14 +85,14 @@ func (s *server) Download(req *pb.DownloadRequest, stream pb.StealthIMFileAPI_Do
 		end = (int)(filemeta.Filesize)
 	}
 	if start >= end {
-		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: 3, Msg: "start must less than end"}}}); err != nil {
+		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "start must less than end"}}}); err != nil {
 			return errors.New("start must less than end")
 		}
 		time.Sleep(500 * time.Millisecond)
 		return nil
 	}
 	if start < 0 || end > (int)(filemeta.Filesize)+1 {
-		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: 4, Msg: "out of the range"}}}); err != nil {
+		if err := stream.Send(&pb.DownloadResponse{Data: &pb.DownloadResponse_Result{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "out of the range"}}}); err != nil {
 			return errors.New("out of the range")
 		}
 		time.Sleep(500 * time.Millisecond)

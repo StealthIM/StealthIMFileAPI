@@ -3,6 +3,7 @@ package storage
 import (
 	pb "StealthIMFileAPI/StealthIM.FileStorage"
 	"StealthIMFileAPI/config"
+	"StealthIMFileAPI/errorcode"
 	"context"
 	"errors"
 	"sync"
@@ -45,7 +46,7 @@ func SaveBytes(hash string, blockID int32, data []byte) (int32, error) {
 		}
 	}()
 	if Conns == nil {
-		return 0, errors.New("No available storage connection")
+		return errorcode.ServerInternalComponentError, errors.New("No available storage connection")
 	}
 	for range len(*Conns) {
 		if latestCancelFunc != nil {
@@ -75,13 +76,13 @@ func SaveBytes(hash string, blockID int32, data []byte) (int32, error) {
 		if err != nil {
 			continue
 		}
-		if ret.Result.Code != 0 {
+		if ret.Result.Code != errorcode.Success {
 			continue
 		}
 		connObj.Usage++
 		return int32(connObj.ConnID), nil
 	}
-	return 0, errors.New("No available storage connection")
+	return errorcode.ServerInternalComponentError, errors.New("No available storage connection")
 }
 
 // GetBytes 从存储中获取字节数据

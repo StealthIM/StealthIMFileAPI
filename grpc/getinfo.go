@@ -3,6 +3,7 @@ package grpc
 import (
 	pb_gateway "StealthIMFileAPI/StealthIM.DBGateway"
 	pb "StealthIMFileAPI/StealthIM.FileAPI"
+	"StealthIMFileAPI/errorcode"
 	"StealthIMFileAPI/gateway"
 	"context"
 
@@ -15,7 +16,7 @@ func (s *server) GetFileInfo(ctx context.Context, req *pb.GetFileInfoRequest) (*
 	for { // 流程控制用，只执行一次
 		// 检查hash
 		gret, gerr := gateway.ExecRedisBGet(&pb_gateway.RedisGetBytesRequest{Key: "files:filehash:" + req.Hash}) // 查缓存
-		if gerr != nil && gret.Result.Code == 0 && len(gret.Value) > 0 {
+		if gerr != nil && gret.Result.Code == errorcode.Success && len(gret.Value) > 0 {
 			hashByte = gret.Value
 			break
 		}
@@ -52,15 +53,17 @@ func (s *server) GetFileInfo(ctx context.Context, req *pb.GetFileInfoRequest) (*
 			}
 			break
 		}
-		break
+		if true {
+			break
+		}
 	}
 	if len(hashByte) == 0 {
-		return &pb.GetFileInfoResponse{Result: &pb.Result{Code: 1, Msg: "file not found"}}, nil
+		return &pb.GetFileInfoResponse{Result: &pb.Result{Code: errorcode.FSAPFileNotFound, Msg: "file not found"}}, nil
 	}
 	filemeta := &pb.BlockStorage{}
 	unmasherr := proto.Unmarshal(hashByte, filemeta)
 	if unmasherr != nil {
-		return &pb.GetFileInfoResponse{Result: &pb.Result{Code: 2, Msg: "server error"}}, nil
+		return &pb.GetFileInfoResponse{Result: &pb.Result{Code: errorcode.ServerInternalComponentError, Msg: "server error"}}, nil
 	}
-	return &pb.GetFileInfoResponse{Result: &pb.Result{Code: 0, Msg: ""}, Size: filemeta.Filesize}, nil
+	return &pb.GetFileInfoResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Size: filemeta.Filesize}, nil
 }

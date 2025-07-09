@@ -53,7 +53,7 @@ async def upload(server: str, port: int, file_path: str, block_size: int = 2*102
                         if (response is None):
                             raise Exception("Connection Lost")
                         if (response.block != None):
-                            if (response.result.code != 0):
+                            if (response.result.code != SUCCESS):
                                 sendlist.append(response.block.blockid)
                                 retrylist[response.block.blockid] += 1
                                 if (retrylist[response.block.blockid] >= 3):
@@ -63,7 +63,7 @@ async def upload(server: str, port: int, file_path: str, block_size: int = 2*102
                             finished_num += 1
                             progress.update(task, completed=finished_num)
                         elif (response.complete != None):
-                            if (response.result.code != 0):
+                            if (response.result.code != SUCCESS):
                                 raise Exception(response.result.msg)
                             finished_num = fileblocknum
                             break

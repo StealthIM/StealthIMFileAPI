@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"StealthIMFileAPI/config"
+	"StealthIMFileAPI/errorcode"
 	"StealthIMFileAPI/reload"
 	"context"
 	"log"
@@ -27,7 +28,7 @@ func (s *server) Reload(ctx context.Context, in *pb.ReloadRequest) (*pb.ReloadRe
 	for _, f := range reload.ReloadCallback {
 		go f()
 	}
-	return &pb.ReloadResponse{Result: &pb.Result{Code: 0, Msg: ""}}, nil
+	return &pb.ReloadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}}, nil
 }
 
 // Start 启动 GRPC 服务
