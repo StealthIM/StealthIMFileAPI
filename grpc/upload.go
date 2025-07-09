@@ -82,7 +82,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		return nil
 	}
 
-	callback_msg := func() {
+	callbackMsg := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		for range 3 {
@@ -109,7 +109,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		}
 
 		if config.LatestConfig.Callback.Host != "" {
-			go callback_msg()
+			go callbackMsg()
 		}
 
 		handleStream(stream) // 等待流
@@ -151,7 +151,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		}
 
 		if config.LatestConfig.Callback.Host != "" {
-			go callback_msg()
+			go callbackMsg()
 		}
 
 		handleStream(stream) // 等待流
@@ -382,7 +382,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 	})
 
 	if config.LatestConfig.Callback.Host != "" {
-		go callback_msg()
+		go callbackMsg()
 	}
 
 	handleStream(stream) // 等待流
