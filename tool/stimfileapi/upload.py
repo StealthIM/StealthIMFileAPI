@@ -6,8 +6,9 @@ import os
 import aiofiles
 import asyncio
 
+SUCCESS = 800
 
-async def upload(server: str, port: int, file_path: str, block_size: int = 2*1024*1024, fhash: str = ""):
+async def upload(server: str, port: int, file_path: str, block_size: int = 2*1024*1024, fhash: str = "", uid = 1, groupid = 1):
     filesize = os.stat(file_path).st_size
     fileblocknum = filesize//block_size
     if (filesize % block_size != 0):
@@ -30,7 +31,7 @@ async def upload(server: str, port: int, file_path: str, block_size: int = 2*102
                 exit_flag = False
                 async with stub.Upload.open() as stream:
                     await stream.send_message(fileapi_pb2.UploadRequest(metadata=fileapi_pb2.Upload_FileMetaData(
-                        totalsize=filesize, upload_uid=-1, hash=fhash)))
+                        totalsize=filesize, upload_uid=uid, hash=fhash, upload_groupid=groupid)))
 
                     async def send():
                         await asyncio.sleep(1)

@@ -28,7 +28,11 @@ StealthIM.FileStorage/filestorage_grpc.pb.go StealthIM.FileStorage/filestorage.p
 StealthIM.DBGateway/db_gateway_grpc.pb.go StealthIM.DBGateway/db_gateway.pb.go: proto/db_gateway.proto
 	$(PROTOCCMD) --plugin=protoc-gen-go=$(PROTOGEN_PATH) --plugin=protoc-gen-go-grpc=$(PROTOGENGRPC_PATH) --go-grpc_out=. --go_out=. proto/db_gateway.proto
 
-proto: ./StealthIM.FileAPI/fileapi_grpc.pb.go ./StealthIM.FileAPI/fileapi.pb.go StealthIM.FileStorage/filestorage_grpc.pb.go StealthIM.FileStorage/filestorage.pb.go ./StealthIM.DBGateway/db_gateway_grpc.pb.go ./StealthIM.DBGateway/db_gateway.pb.go
+StealthIM.MSAP/msap_grpc.pb.go StealthIM.MSAP/msap.pb.go: proto/msap.proto
+	$(PROTOCCMD) --plugin=protoc-gen-go=$(PROTOGEN_PATH) --plugin=protoc-gen-go-grpc=$(PROTOGENGRPC_PATH) --go-grpc_out=. --go_out=. proto/msap.proto
+
+
+proto: ./StealthIM.FileAPI/fileapi_grpc.pb.go ./StealthIM.FileAPI/fileapi.pb.go StealthIM.FileStorage/filestorage_grpc.pb.go StealthIM.FileStorage/filestorage.pb.go ./StealthIM.DBGateway/db_gateway_grpc.pb.go ./StealthIM.DBGateway/db_gateway.pb.go ./StealthIM.MSAP/msap_grpc.pb.go ./StealthIM.MSAP/msap.pb.go
 
 
 build: ./bin/$(DEFAULT_BUILD_FILENAME)

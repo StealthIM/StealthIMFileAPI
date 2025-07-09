@@ -2,6 +2,7 @@ from .proto import fileapi_grpc, fileapi_pb2
 from grpclib.client import Channel
 from rich import print
 
+SUCCESS = 800
 
 async def reload(host: str, port: int):
     channel = Channel(host, port)

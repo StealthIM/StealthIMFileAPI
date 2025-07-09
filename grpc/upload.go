@@ -3,13 +3,18 @@ package grpc
 import (
 	pb_gateway "StealthIMFileAPI/StealthIM.DBGateway"
 	pb "StealthIMFileAPI/StealthIM.FileAPI"
+	pb_msap "StealthIMFileAPI/StealthIM.MSAP"
 	"StealthIMFileAPI/config"
 	"StealthIMFileAPI/errorcode"
 	"StealthIMFileAPI/gateway"
+	"StealthIMFileAPI/msap"
 	"StealthIMFileAPI/storage"
+	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -62,12 +67,49 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		handleStream(stream) // 等待流结束
 		return nil
 	}
+	if filemeta.UploadUid == 0 {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "UID is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+			return err
+		}
+		handleStream(stream) // 等待流结束
+		return nil
+	}
+	if filemeta.UploadGroupid == 0 {
+		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.FSAPMetadataError, Msg: "GroupID is empty"}, Data: &pb.UploadResponse_Meta{Meta: &pb.Upload_MetaResponse{Blocksize: (int32)(blocksize) * 1024}}}); err != nil {
+			return err
+		}
+		handleStream(stream) // 等待流结束
+		return nil
+	}
+
+	callback_msg := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		for range 3 {
+			resp, err := msap.FileAPICall(ctx, &pb_msap.FileAPICallRequest{
+				Uid:      filemeta.UploadUid,
+				Groupid:  filemeta.UploadGroupid,
+				Hash:     filemeta.Hash,
+				Filename: fmt.Sprintf("[%d]", filemeta.Totalsize),
+			})
+			if err == nil {
+				if resp.Result.Code == errorcode.Success {
+					return
+				}
+			}
+			time.Sleep(3 * time.Second)
+		}
+	}
 
 	// 检查hash
 	gret, gerr := gateway.ExecRedisBGet(&pb_gateway.RedisGetBytesRequest{Key: "files:filehash:" + filemeta.Hash}) // 查缓存
 	if gerr != nil && gret != nil && gret.Result != nil && gret.Result.Code == errorcode.Success {
 		if err := stream.Send(&pb.UploadResponse{Result: &pb.Result{Code: errorcode.Success, Msg: ""}, Data: &pb.UploadResponse_Complete{Complete: &pb.Upload_CompleteResponse{Hash: filemeta.Hash}}}); err != nil {
 			return errors.New("Return error")
+		}
+
+		if config.LatestConfig.Callback.Host != "" {
+			go callback_msg()
 		}
 
 		handleStream(stream) // 等待流
@@ -107,6 +149,11 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 				Ttl:   3600,
 			})
 		}
+
+		if config.LatestConfig.Callback.Host != "" {
+			go callback_msg()
+		}
+
 		handleStream(stream) // 等待流
 		return nil
 	}
@@ -333,6 +380,10 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		DBID: 0,
 		Key:  "files:filehash:" + fileFullHash,
 	})
+
+	if config.LatestConfig.Callback.Host != "" {
+		go callback_msg()
+	}
 
 	handleStream(stream) // 等待流
 	return nil

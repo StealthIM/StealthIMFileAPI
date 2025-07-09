@@ -41,7 +41,7 @@ def global_cmd(
 
 
 @app.command(name="upload", help="Upload File")
-def upload(path: str):
+def upload(path: str, uid: int, groupid: int):
     if not os.path.exists(path):
         console.print("[bold red]File Not Found: [/bold red]"+path)
         raise typer.Exit(1)
@@ -54,7 +54,7 @@ def upload(path: str):
     console.print(
         f"[green][bold]hash[/bold]: [underline]{filehash}[/underline][/green]")
     asyncio.run(upload_func.upload(
-        server_host, server_port, path, blocksize, filehash))
+        server_host, server_port, path, blocksize, filehash, uid=uid, groupid=groupid))
     console.print(
         f"[blue][bold]Upload Complete![/bold][/blue]")
     console.print(

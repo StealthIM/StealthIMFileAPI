@@ -4,6 +4,7 @@ import (
 	"StealthIMFileAPI/config"
 	"StealthIMFileAPI/gateway"
 	"StealthIMFileAPI/grpc"
+	"StealthIMFileAPI/msap"
 	"StealthIMFileAPI/storage"
 	"log"
 )
@@ -23,6 +24,12 @@ func main() {
 		log.Printf("  + ID: %d\n", storage.ID)
 		log.Printf("    Host: %s\n", storage.Host)
 		log.Printf("    Port: %d\n", storage.Port)
+	}
+	if cfg.Callback.Host != "" {
+		log.Printf("+ Callback MSAP\n")
+		log.Printf("    Host: %s\n", cfg.Callback.Host)
+		log.Printf("    Port: %d\n", cfg.Callback.Port)
+		go msap.InitConns()
 	}
 	go gateway.InitConns()
 	go storage.Start()
