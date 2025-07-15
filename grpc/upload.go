@@ -163,9 +163,9 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 	}
 
 	// 计算数据
-	var blocknum = filemeta.Totalsize / ((int32)(blocksize) * 1024)
+	var blocknum = int32(filemeta.Totalsize / ((int64)(blocksize) * 1024))
 	var lastBlockSize = (int)(blocksize) * 1024
-	if filemeta.Totalsize%((int32)(blocksize)*1024) != 0 {
+	if filemeta.Totalsize%((int64)(blocksize)*1024) != 0 {
 		lastBlockSize = (int)(filemeta.Totalsize) % ((int)(blocksize) * 1024)
 		blocknum++
 	}
@@ -341,7 +341,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 			Response: &pb_gateway.InterFaceType_Blob{Blob: blobdata},
 		},
 		{
-			Response: &pb_gateway.InterFaceType_Int32{Int32: filemeta.Totalsize},
+			Response: &pb_gateway.InterFaceType_Int64{Int64: filemeta.Totalsize},
 		},
 		{
 			Response: &pb_gateway.InterFaceType_Int32{Int32: filemeta.UploadUid},
