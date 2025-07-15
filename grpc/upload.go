@@ -85,12 +85,16 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 	callbackMsg := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
+		filename := filemeta.Filename
+		if len(filename) == 0 {
+			filename = fmt.Sprintf("Unknown.%s.txt", filemeta.Hash[:8])
+		}
 		for range 3 {
 			resp, err := msap.FileAPICall(ctx, &pb_msap.FileAPICallRequest{
 				Uid:      filemeta.UploadUid,
 				Groupid:  filemeta.UploadGroupid,
 				Hash:     filemeta.Hash,
-				Filename: fmt.Sprintf("[%d]", filemeta.Totalsize),
+				Filename: filemeta.Filename,
 			})
 			if err == nil {
 				if resp.Result.Code == errorcode.Success {

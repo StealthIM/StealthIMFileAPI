@@ -17,17 +17,17 @@ var conns []*grpc.ClientConn
 var mainlock sync.RWMutex
 
 func createConn(connID int) {
-	log.Printf("[Session]Connect %d", connID+1)
+	log.Printf("[MSAP]Connect %d", connID+1)
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.LatestConfig.Callback.Host, config.LatestConfig.Callback.Port),
 		grpc.WithTransportCredentials(
 			insecure.NewCredentials()))
 	if conn == nil {
-		log.Printf("[Session]Connect %d Error %v\n", connID+1, err)
+		log.Printf("[MSAP]Connect %d Error %v\n", connID+1, err)
 		conns[connID] = nil
 		return
 	}
 	if err != nil {
-		log.Printf("[Session]Connect %d Error %v\n", connID+1, err)
+		log.Printf("[MSAP]Connect %d Error %v\n", connID+1, err)
 		conns[connID] = nil
 		return
 	}
