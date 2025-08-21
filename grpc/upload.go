@@ -99,7 +99,7 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 				Uid:      filemeta.UploadUid,
 				Groupid:  filemeta.UploadGroupid,
 				Hash:     filemeta.Hash,
-				Filename: filemeta.Filename,
+				Filename: filename,
 			})
 			if err == nil {
 				if resp.Result.Code == errorcode.Success {
@@ -110,6 +110,8 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		}
 		if err != nil {
 			log.Printf("[FileAPI] Call callback error: %v", err)
+		} else {
+			log.Printf("[FileAPI] Call callback failed: %v(%d)", resp.Result.Msg, resp.Result.Code)
 		}
 
 	}
