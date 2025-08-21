@@ -89,8 +89,13 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 		if len(filename) == 0 {
 			filename = fmt.Sprintf("Unknown.%s.txt", filemeta.Hash[:8])
 		}
+		var err error
+		var resp *pb_msap.FileAPICallResponse
+		if cfgCopy.FileAPI.Log {
+			log.Printf("[FileAPI] Callback")
+		}
 		for range 3 {
-			resp, err := msap.FileAPICall(ctx, &pb_msap.FileAPICallRequest{
+			resp, err = msap.FileAPICall(ctx, &pb_msap.FileAPICallRequest{
 				Uid:      filemeta.UploadUid,
 				Groupid:  filemeta.UploadGroupid,
 				Hash:     filemeta.Hash,
@@ -103,6 +108,10 @@ func (s *server) Upload(stream pb.StealthIMFileAPI_UploadServer) error {
 			}
 			time.Sleep(3 * time.Second)
 		}
+		if err != nil {
+			log.Printf("[FileAPI] Call callback error: %v", err)
+		}
+
 	}
 
 	// 检查hash
